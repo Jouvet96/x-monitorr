@@ -8,19 +8,31 @@ USERNAME = os.getenv("USERNAME")
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 
+CHECK_INTERVAL = 60
 
-def send_telegram(msg):
+
+def send_telegram(message):
 
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
 
     data = {
         "chat_id": CHAT_ID,
-        "text": msg
+        "text": message
     }
 
-    r = requests.post(url, data=data)
+    try:
 
-    print("TELEGRAM:", r.status_code)
+        r = requests.post(
+            url,
+            data=data,
+            timeout=15
+        )
+
+        print("TELEGRAM:", r.status_code)
+
+    except Exception as e:
+
+        print("TELEGRAM ERROR:", e)
 
 
 print("BOT STARTED")
@@ -32,7 +44,7 @@ while True:
 
     try:
 
-        print("LOOP WORKING")
+        print("CHECKING ACCOUNT...")
 
         url = f"https://x.com/{USERNAME}"
 
@@ -46,23 +58,33 @@ while True:
             timeout=20
         )
 
-        print("HTTP:", r.status_code)
+        print("HTTP STATUS:", r.status_code)
 
         text = r.text.lower()
 
+        # suspended kontrolü
         if "account suspended" in text:
 
             print("ACCOUNT SUSPENDED")
 
-        elif "followers" in text:
+        # aktif profil kontrolü
+        elif (
+            "followers" in text
+            or "following" in text
+            or "posts" in text
+        ):
 
             print("ACCOUNT ACTIVE")
+
+            send_telegram(
+                f"🚨 @{USERNAME} hesabı AKTİF görünüyor!"
+            )
 
         else:
 
             print("UNKNOWN PAGE")
 
-        time.sleep(60)
+        time.sleep(CHECK_INTERVAL)
 
     except Exception as e:
 
