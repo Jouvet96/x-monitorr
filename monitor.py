@@ -68,4 +68,4 @@ while True:
 
         print("ERROR:", e)
 
-        time.sleep(30)
+        time.sleep(60)
