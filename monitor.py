@@ -80,11 +80,10 @@ while True:
             r.status_code
         )
 
-        # aktif kontrolü
+        # SADECE BUNU KONTROL ET
         if (
-            "adlı kişinin gönderilerini yalnızca onaylı takipçileri görebilir."
+            "only confirmed followers can see"
             in text
-           
         ):
 
             print(
