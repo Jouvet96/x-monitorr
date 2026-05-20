@@ -82,7 +82,7 @@ while True:
 
         # aktif kontrolü
         if (
-            "@serdartekinbass"
+            "adlı kişinin gönderilerini yalnızca onaylı takipçileri görebilir."
             in text
            
         ):
