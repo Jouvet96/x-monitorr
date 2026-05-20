@@ -82,7 +82,7 @@ while True:
 
         # aktif kontrolü
         if (
-            "serdartekinbass"
+            "@serdartekinbass"
             in text
            
         ):
