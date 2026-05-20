@@ -1,3 +1,5 @@
+print("SCRIPT STARTED")
+
 import os
 import time
 import requests
@@ -10,123 +12,122 @@ CHECK_INTERVAL = 60
 
 
 def send_telegram(message):
-    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-
-    data = {
-        "chat_id": CHAT_ID,
-        "text": message
-    }
-
     try:
-        response = requests.post(
+        url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+
+        data = {
+            "chat_id": CHAT_ID,
+            "text": message
+        }
+
+        r = requests.post(
             url,
             data=data,
             timeout=15
         )
 
-        print("Telegram:", response.status_code)
+        print("TELEGRAM STATUS:", r.status_code)
 
     except Exception as e:
-        print("Telegram error:", e)
+        print("TELEGRAM ERROR:", e)
 
 
-def is_account_active(username):
-    url = f"https://x.com/{username}"
-
-    headers = {
-        "User-Agent": (
-            "Mozilla/5.0 "
-            "(Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 "
-            "(KHTML, like Gecko) "
-            "Chrome/124.0 Safari/537.36"
-        )
-    }
-
+def check_account(username):
     try:
-        response = requests.get(
+        url = f"https://x.com/{username}"
+
+        headers = {
+            "User-Agent": (
+                "Mozilla/5.0 "
+                "(Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 "
+                "(KHTML, like Gecko) "
+                "Chrome/124.0 Safari/537.36"
+            )
+        }
+
+        r = requests.get(
             url,
             headers=headers,
             timeout=20
         )
 
-        text = response.text.lower()
+        print("HTTP STATUS:", r.status_code)
 
-        print("HTTP:", response.status_code)
+        text = r.text.lower()
 
-        # suspend kontrolü
+        # suspended
         if "account suspended" in text:
-            print("STATUS: suspended")
+            print("ACCOUNT SUSPENDED")
             return False
 
-        # kullanıcı yoksa
+        # account not found
         if "this account doesn" in text:
-            print("STATUS: account not found")
+            print("ACCOUNT NOT FOUND")
             return False
 
-        # x blokladıysa
-        blocked_words = [
+        # x blocked request
+        blocked = [
             "rate limit exceeded",
             "something went wrong",
             "log in to x",
             "sign in to x",
-            "enter your phone number",
             "unusual traffic"
         ]
 
-        for word in blocked_words:
+        for word in blocked:
             if word in text:
-                print("STATUS: blocked by x")
+                print("X BLOCKED REQUEST")
                 return None
 
-        # profil işaretleri
-        profile_words = [
+        # active profile indicators
+        indicators = [
             "followers",
             "following",
             "joined",
             "posts"
         ]
 
-        for word in profile_words:
+        for word in indicators:
             if word in text:
-                print("STATUS: active")
+                print("ACCOUNT ACTIVE")
                 return True
 
-        print("STATUS: unknown")
+        print("UNKNOWN PAGE")
         return None
 
     except Exception as e:
-        print("Check error:", e)
+        print("CHECK ERROR:", e)
         return None
 
 
 print("BOT STARTED")
 
-# ilk durum
-last_status = is_account_active(USERNAME)
+send_telegram("✅ Bot aktif.")
 
-print("Initial status:", last_status)
+last_status = check_account(USERNAME)
+
+print("INITIAL STATUS:", last_status)
 
 while True:
+
     try:
-        current_status = is_account_active(USERNAME)
+        print("CHECKING ACCOUNT...")
 
-        print("Current status:", current_status)
+        current_status = check_account(USERNAME)
 
-        # sadece gerçekten suspend -> active geçişinde bildir
+        print("CURRENT STATUS:", current_status)
+
+        # suspended -> active
         if (
             last_status is False
             and current_status is True
         ):
-            msg = (
+            send_telegram(
                 f"🚨 @{USERNAME} hesabı aktif oldu!"
             )
 
-            print(msg)
-
-            send_telegram(msg)
-
-        # sadece geçerli sonuç varsa güncelle
+        # update only valid states
         if current_status is not None:
             last_status = current_status
 
