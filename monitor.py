@@ -61,7 +61,7 @@ def check_account():
         # aktif kontrolü
         if (
             "followers" in text
-            or "following" in text
+            and "following" in text
         ):
 
             print("ACCOUNT ACTIVE")
