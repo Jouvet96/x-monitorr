@@ -10,17 +10,19 @@ CHAT_ID = os.getenv("CHAT_ID")
 
 CHECK_INTERVAL = 60
 
+last_status = None
+
 
 def send_telegram(message):
 
-    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-
-    data = {
-        "chat_id": CHAT_ID,
-        "text": message
-    }
-
     try:
+
+        url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+
+        data = {
+            "chat_id": CHAT_ID,
+            "text": message
+        }
 
         r = requests.post(
             url,
@@ -35,6 +37,43 @@ def send_telegram(message):
         print("TELEGRAM ERROR:", e)
 
 
+def check_account():
+
+    try:
+
+        url = f"https://x.com/{USERNAME}"
+
+        headers = {
+            "User-Agent": (
+                "Mozilla/5.0 "
+                "(Windows NT 10.0; Win64; x64)"
+            )
+        }
+
+        r = requests.get(
+            url,
+            headers=headers,
+            timeout=20,
+            allow_redirects=True
+        )
+
+        final_url = r.url.lower()
+
+        print("FINAL URL:", final_url)
+
+        # kullanıcı adına yönleniyorsa aktif say
+        if USERNAME.lower() in final_url:
+            return True
+
+        return False
+
+    except Exception as e:
+
+        print("CHECK ERROR:", e)
+
+        return False
+
+
 print("BOT STARTED")
 
 send_telegram("✅ BOT ONLINE")
@@ -44,50 +83,32 @@ while True:
 
     try:
 
-        print("CHECKING ACCOUNT...")
+        current_status = check_account()
 
-        url = f"https://x.com/{USERNAME}"
+        print("CURRENT STATUS:", current_status)
 
-        headers = {
-            "User-Agent": "Mozilla/5.0"
-        }
-
-        r = requests.get(
-            url,
-            headers=headers,
-            timeout=20
-        )
-
-        print("HTTP STATUS:", r.status_code)
-
-        text = r.text.lower()
-
-        # suspended kontrolü
-        if "account suspended" in text:
-
-            print("ACCOUNT SUSPENDED")
-
-        # aktif profil kontrolü
-        elif (
-            "followers" in text
-            or "following" in text
-            or "posts" in text
-        ):
-
-            print("ACCOUNT ACTIVE")
+        # AKTİF
+        if current_status:
 
             send_telegram(
-                f"🚨 @{USERNAME} hesabı AKTİF görünüyor!"
+                f"🟢 @{USERNAME} hesabı AKTİF."
             )
 
+        # PASİF OLDU
         else:
 
-            print("UNKNOWN PAGE")
+            if last_status is True:
+
+                send_telegram(
+                    f"🔴 @{USERNAME} hesabı PASİF oldu."
+                )
+
+        last_status = current_status
 
         time.sleep(CHECK_INTERVAL)
 
     except Exception as e:
 
-        print("ERROR:", e)
+        print("MAIN LOOP ERROR:", e)
 
         time.sleep(60)
