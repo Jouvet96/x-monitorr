@@ -10,8 +10,6 @@ CHAT_ID = os.getenv("CHAT_ID")
 
 CHECK_INTERVAL = 60
 
-last_status = None
-
 
 def send_telegram(message):
 
@@ -53,19 +51,28 @@ def check_account():
         r = requests.get(
             url,
             headers=headers,
-            timeout=20,
-            allow_redirects=True
+            timeout=20
         )
 
-        final_url = r.url.lower()
+        print("HTTP STATUS:", r.status_code)
 
-        print("FINAL URL:", final_url)
+        text = r.text.lower()
 
-        # kullanıcı adına yönleniyorsa aktif say
-        if USERNAME.lower() in final_url:
+        # aktif kontrolü
+        if (
+            "followers" in text
+            or "following" in text
+        ):
+
+            print("ACCOUNT ACTIVE")
+
             return True
 
-        return False
+        else:
+
+            print("ACCOUNT PASSIVE")
+
+            return False
 
     except Exception as e:
 
@@ -85,25 +92,17 @@ while True:
 
         current_status = check_account()
 
-        print("CURRENT STATUS:", current_status)
-
-        # AKTİF
         if current_status:
 
             send_telegram(
                 f"🟢 @{USERNAME} hesabı AKTİF."
             )
 
-        # PASİF OLDU
         else:
 
-            if last_status is True:
-
-                send_telegram(
-                    f"🔴 @{USERNAME} hesabı PASİF oldu."
-                )
-
-        last_status = current_status
+            send_telegram(
+                f"🔴 @{USERNAME} hesabı PASİF."
+            )
 
         time.sleep(CHECK_INTERVAL)
 
