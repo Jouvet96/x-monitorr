@@ -82,11 +82,9 @@ while True:
 
         # aktif kontrolü
         if (
-            "tarihinde katıldı"
+            "serdartekinbass"
             in text
-            or
-            "joined"
-            in text
+           
         ):
 
             print(
