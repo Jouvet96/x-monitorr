@@ -11,21 +11,34 @@ CHECK_INTERVAL = 60
 
 
 def send_telegram(message):
-    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-    data = {
-        "chat_id": CHAT_ID,
-        "text": message
-    }
-
     try:
+        url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+
+        data = {
+            "chat_id": CHAT_ID,
+            "text": message
+        }
+
         r = requests.post(url, data=data, timeout=15)
         print("TELEGRAM:", r.status_code)
+
     except Exception as e:
         print("TELEGRAM ERROR:", e)
 
 
 def check_account():
     url = f"https://x.com/{USERNAME}"
+
+    active_keywords = [
+        "gönderilerini yalnızca onaylı takipçileri görebilir",
+        "only confirmed followers can see",
+        "nur bestätigte follower können",
+        "seuls les abonnés confirmés peuvent voir",
+        "solo los seguidores confirmados pueden ver",
+        "somente seguidores confirmados podem ver",
+        "solo i follower confermati possono vedere",
+        "только подтвержденные подписчики могут видеть"
+    ]
 
     with sync_playwright() as p:
         browser = p.chromium.launch(
@@ -42,19 +55,22 @@ def check_account():
             )
         )
 
-        page.goto(url, wait_until="networkidle", timeout=60000)
+        page.goto(
+            url,
+            wait_until="domcontentloaded",
+            timeout=30000
+        )
+
+        page.wait_for_timeout(8000)
 
         text = page.inner_text("body").lower()
-
-        browser.close()
 
         print("PAGE TEXT:")
         print(text[:1000])
 
-        if "only confirmed followers can see" in text:
-            return True
+        browser.close()
 
-        return False
+        return any(keyword in text for keyword in active_keywords)
 
 
 print("BOT STARTED")
@@ -62,9 +78,9 @@ send_telegram("✅ BOT ONLINE")
 
 while True:
     try:
-        active = check_account()
+        is_active = check_account()
 
-        if active:
+        if is_active:
             print("ACCOUNT ACTIVE")
             send_telegram(f"🟢 @{USERNAME} AKTİF")
         else:
