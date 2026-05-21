@@ -30,14 +30,7 @@ def check_account():
     url = f"https://x.com/{USERNAME}"
 
     active_keywords = [
-        "gönderilerini yalnızca onaylı takipçileri görebilir",
-        "only confirmed followers can see",
-        "nur bestätigte follower können",
-        "seuls les abonnés confirmés peuvent voir",
-        "solo los seguidores confirmados pueden ver",
-        "somente seguidores confirmados podem ver",
-        "solo i follower confermati possono vedere",
-        "только подтвержденные подписчики могут видеть"
+        "gönderilerini yalnızca onaylı takipçileri görebilir"
     ]
 
     with sync_playwright() as p:
@@ -47,12 +40,16 @@ def check_account():
         )
 
         page = browser.new_page(
+            locale="tr-TR",
             user_agent=(
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                 "AppleWebKit/537.36 "
                 "(KHTML, like Gecko) "
                 "Chrome/124.0 Safari/537.36"
-            )
+            ),
+            extra_http_headers={
+                "Accept-Language": "tr-TR,tr;q=0.9"
+            }
         )
 
         page.goto(
