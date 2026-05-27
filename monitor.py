@@ -81,4 +81,4 @@ while True:
     except Exception as e:
         print("MAIN ERROR:", e)
         send_telegram(f"⚠️ Kontrol hatası: {e}")
-        time.sleep(60)
+        time.sleep(15)
