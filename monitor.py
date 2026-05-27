@@ -7,7 +7,7 @@ USERNAME = os.getenv("USERNAME")
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 
-CHECK_INTERVAL = 60
+CHECK_INTERVAL = 15
 last_status = None
 
 
